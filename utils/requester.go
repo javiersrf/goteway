@@ -34,7 +34,7 @@ func MakeRequest(method string, path string, headers http.Header) (resp *http.Re
 		panic("PROXYURL environment variable is not set")
 	}
 
-	requestURL := fmt.Sprintf("%s:%s", baseUrl, path)
+	requestURL := fmt.Sprintf("%s%s", baseUrl, path)
 	req, err := http.NewRequest(method, requestURL, nil)
 	req.Header = headers
 	if err != nil {
