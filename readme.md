@@ -10,7 +10,7 @@
 | `REDISADDR`      | Redis server address (e.g. `localhost:6379`)                                | `localhost:6379`|
 | `REDISPASSWORD`  | Redis password (leave empty if no password is set)                          | ``              |
 | `REDISDB`        | Redis database index (integer)                                              | `0`             |
-| `SERVER_PORT`    | Port where the gateway will be exposed                                      | `8080`          |
+| `PORT`           | Port where the gateway will be exposed                                      | `8080`          |
 
 ---
 
@@ -34,7 +34,7 @@ The gateway will be available at:
 ```
 http://localhost:8080
 ```
-(unless overridden with the SERVER_PORT environment variable).
+(unless overridden with the PORT environment variable).
 
 ## 🤝 Contributing
 

@@ -27,7 +27,7 @@ func main() {
 	requestHandler := handler.NewRequestHandler(rdb)
 	serverPort := "8080"
 	fmt.Printf("Starting server on port %s\n", serverPort)
-	envServerPort := os.Getenv("SERVER_PORT")
+	envServerPort := os.Getenv("PORT")
 	if envServerPort != "" {
 		serverPort = envServerPort
 	}
