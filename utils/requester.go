@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
@@ -27,7 +28,7 @@ func InitClient() {
 	}
 }
 
-func MakeRequest(method string, path string, headers http.Header) (resp *http.Response, err error) {
+func MakeRequest(method string, path string, headers http.Header, body io.Reader) (resp *http.Response, err error) {
 
 	baseUrl := os.Getenv("PROXYURL")
 	if baseUrl == "" {
@@ -35,7 +36,7 @@ func MakeRequest(method string, path string, headers http.Header) (resp *http.Re
 	}
 
 	requestURL := fmt.Sprintf("%s%s", baseUrl, path)
-	req, err := http.NewRequest(method, requestURL, nil)
+	req, err := http.NewRequest(method, requestURL, body)
 	req.Header = headers
 	if err != nil {
 		return nil, err

@@ -32,7 +32,7 @@ func NewRequestHandler(rdb *redis.Client) http.HandlerFunc {
 			w.Write([]byte(decodedContent))
 			return
 		}
-		response, err := utils.MakeRequest(r.Method, r.URL.Path, r.Header)
+		response, err := utils.MakeRequest(r.Method, r.URL.Path, r.Header, r.Body)
 		if err != nil {
 			fmt.Printf("Error making request to backend: %v\n", err)
 			http.Error(w, "Error making request to backend", http.StatusInternalServerError)
