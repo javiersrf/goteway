@@ -11,26 +11,16 @@ import (
 )
 
 func InitializeRedis(ctx context.Context) *redis.Client {
-	addresRedis := os.Getenv("REDISADDR")
-	if addresRedis == "" {
-		addresRedis = "localhost:6379"
+	redisURL := os.Getenv("REDISADDR")
+	if redisURL == "" {
+		redisURL = "redis://localhost:6379/0"
 	}
-	passwordRedis := os.Getenv("REDISPASSWORD")
-	if passwordRedis == "" {
-		passwordRedis = ""
+
+	opt, err := redis.ParseURL(redisURL)
+	if err != nil {
+		panic(fmt.Sprintf("invalid redis url: %v", err))
 	}
-	dbRedis := os.Getenv("REDISDB")
-	var db int
-	if dbRedis == "" {
-		db = 0
-	} else {
-		fmt.Sscanf(dbRedis, "%d", &db)
-	}
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     addresRedis,
-		Password: passwordRedis,
-		DB:       db,
-	})
+	rdb := redis.NewClient(opt)
 
 	pong, err := rdb.Ping(ctx).Result()
 	if err != nil {

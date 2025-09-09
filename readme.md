@@ -7,10 +7,7 @@
 |------------------|-----------------------------------------------------------------------------|-----------------|
 | `PROXYURL`       | Main URL for the upstream API services                                      | **required**    |
 | `REQUEST_TIMEOUT`| Timeout (in seconds) for each request forwarded by the gateway              | `30`            |
-| `REDISADDR`      | Redis server address (e.g. `localhost:6379`)                                | `localhost:6379`|
-| `REDISPASSWORD`  | Redis password (leave empty if no password is set)                          | ``              |
-| `REDISDB`        | Redis database index (integer)                                              | `0`             |
-| `PORT`           | Port where the gateway will be exposed                                      | `8080`          |
+| `REDISADDR`      | Redis server address (e.g. `localhost:6379`)                                | `redis://localhost:6379/0`|
 
 ---
 
