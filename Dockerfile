@@ -19,6 +19,8 @@ WORKDIR /app
 
 COPY --from=builder /app/main .
 
+RUN apk add --no-cache curl
+
 RUN chown appuser:appuser /app/main
 
 USER appuser
