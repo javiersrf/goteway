@@ -1,14 +1,12 @@
 package handler
 
 import (
-	"encoding/base64"
 	"fmt"
 	"io"
 	"net/http"
 	"strconv"
-	"time"
 
-	"github.com/javiersrf/goteway/cache"
+	"github.com/javiersrf/goteway/services"
 	"github.com/javiersrf/goteway/utils"
 	"github.com/redis/go-redis/v9"
 )
@@ -16,22 +14,11 @@ import (
 func NewRequestHandler(rdb *redis.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		cacheKey := fmt.Sprint(r.Method + "-" + r.URL.Path)
-		encodedCacheKey := base64.URLEncoding.EncodeToString([]byte(cacheKey))
-
-		val, err := cache.GetCache(r.Context(), rdb, encodedCacheKey)
-		if err != nil {
-			fmt.Printf("Error getting from cache: %v\n", err)
-		}
-		if val != "" {
-			fmt.Println("Serving from cache")
-			decodedContent, err := base64.StdEncoding.DecodeString(val)
-			if err != nil {
-				fmt.Printf("Error getting from cache: %v\n", err)
-			}
-			w.Write([]byte(decodedContent))
+		ok, _ := services.GetFromCache(r, w, rdb)
+		if ok {
 			return
 		}
+
 		response, err := utils.MakeRequest(r.Method, r.URL.Path, r.Header, r.Body)
 		if err != nil {
 			fmt.Printf("Error making request to backend: %v\n", err)
@@ -40,10 +27,22 @@ func NewRequestHandler(rdb *redis.Client) http.HandlerFunc {
 		}
 		defer response.Body.Close()
 
+		expirationInMinutes := 5
+		if response.Header.Get("X-Cache") != "" && response.Header.Get("X-Cache-Expire") != "" {
+			expiration := response.Header.Get("X-Cache-Expire")
+			expirationInMinutes, err = strconv.Atoi(expiration)
+			if err != nil {
+				fmt.Printf("Error getting from cache: %v\n", err)
+				expirationInMinutes = 240
+			}
+		}
+		services.SaveOnCache(r, response, rdb, expirationInMinutes)
+
 		for key, values := range response.Header {
 			for _, value := range values {
 				w.Header().Add(key, value)
 			}
+
 		}
 
 		w.WriteHeader(response.StatusCode)
@@ -53,19 +52,6 @@ func NewRequestHandler(rdb *redis.Client) http.HandlerFunc {
 			return
 		}
 
-		if response.Header.Get("X-Cache") != "" && response.Header.Get("X-Cache-Expire") != "" {
-			expiration := response.Header.Get("X-Cache-Expire")
-			var expirationInt int
-			expirationInt, err := strconv.Atoi(expiration)
-			if err != nil {
-				fmt.Printf("Error getting from cache: %v\n", err)
-				expirationInt = 240
-			}
-
-			encodedContent := base64.StdEncoding.EncodeToString([]byte(bodyBytes))
-
-			cache.SetCache(r.Context(), rdb, encodedCacheKey, encodedContent, time.Duration(expirationInt)*time.Minute)
-		}
 		w.Write(bodyBytes)
 
 		if err != nil {
