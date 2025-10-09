@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"time"
@@ -29,18 +30,35 @@ func InitClient() {
 	}
 }
 
-func MakeRequest(method string, path string, headers http.Header, body io.Reader) (resp *http.Response, err error) {
-
-	baseUrl := os.Getenv("PROXYURL")
-	if baseUrl == "" {
+func MakeRequest(method string, path string, headers http.Header, query map[string]string, body io.Reader) (*http.Response, error) {
+	baseURL := os.Getenv("PROXYURL")
+	if baseURL == "" {
 		panic("PROXYURL environment variable is not set")
 	}
 
-	requestURL := fmt.Sprintf("%s%s", baseUrl, path)
-	req, err := http.NewRequest(method, requestURL, body)
-	req.Header = headers
+	u, err := url.Parse(baseURL)
+	if err != nil {
+		return nil, fmt.Errorf("invalid PROXYURL: %w", err)
+	}
+
+	u.Path = fmt.Sprintf("%s%s", u.Path, path)
+
+	if len(query) > 0 {
+		q := u.Query()
+		for k, v := range query {
+			q.Set(k, v)
+		}
+		u.RawQuery = q.Encode()
+	}
+
+	req, err := http.NewRequest(method, u.String(), body)
 	if err != nil {
 		return nil, err
 	}
+
+	if headers != nil {
+		req.Header = headers
+	}
+
 	return client.Do(req)
 }

@@ -25,7 +25,14 @@ func NewRequestHandler(rdb *redis.Client) http.HandlerFunc {
 		}
 		log.Printf("[CACHE MISS] %s %s", r.Method, r.URL.Path)
 
-		response, err := utils.MakeRequest(r.Method, r.URL.Path, r.Header, r.Body)
+		queryParams := make(map[string]string)
+		for key, values := range r.URL.Query() {
+			if len(values) > 0 {
+				queryParams[key] = values[0]
+			}
+		}
+
+		response, err := utils.MakeRequest(r.Method, r.URL.Path, r.Header, queryParams, r.Body)
 		if err != nil {
 			log.Printf("[ERROR] Backend request failed: %v", err)
 			http.Error(w, "Error making request to backend", http.StatusInternalServerError)

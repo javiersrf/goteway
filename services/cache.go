@@ -20,7 +20,7 @@ type CacheValue struct {
 func SaveOnCache(r *http.Request, resp *http.Response, rdb *redis.Client, expirationMinutes int) error {
 	authHeader := r.Header.Get("Authorization")
 
-	cacheKey := fmt.Sprintf("%s-%s-%s", r.Method, r.URL.Path, authHeader)
+	cacheKey := fmt.Sprintf("%s-%s-%s", r.Method, r.URL.RequestURI(), authHeader)
 
 	encodedCacheKey := base64.URLEncoding.EncodeToString([]byte(cacheKey))
 
@@ -59,7 +59,7 @@ func SaveOnCache(r *http.Request, resp *http.Response, rdb *redis.Client, expira
 
 func GetFromCache(r *http.Request, w http.ResponseWriter, rdb *redis.Client) (bool, error) {
 	authHeader := r.Header.Get("Authorization")
-	cacheKey := fmt.Sprintf("%s-%s-%s", r.Method, r.URL.Path, authHeader)
+	cacheKey := fmt.Sprintf("%s-%s-%s", r.Method, r.URL.RequestURI(), authHeader)
 	encodedCacheKey := base64.URLEncoding.EncodeToString([]byte(cacheKey))
 
 	ctx := r.Context()
