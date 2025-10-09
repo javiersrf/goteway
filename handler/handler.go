@@ -32,15 +32,18 @@ func NewRequestHandler(rdb *redis.Client) http.HandlerFunc {
 		defer response.Body.Close()
 
 		expirationInMinutes := 5
-		if response.Header.Get("X-Cache") != "" && response.Header.Get("X-Cache-Expire") != "" {
+		xCache := response.Header.Get("X-Cache")
+		if xCache != "" && response.Header.Get("X-Cache-Expire") != "" {
 			expiration := response.Header.Get("X-Cache-Expire")
 			expirationInMinutes, err = strconv.Atoi(expiration)
 			if err != nil {
 				fmt.Printf("Error getting from cache: %v\n", err)
 				expirationInMinutes = 240
 			}
+
+			services.SaveOnCache(r, response, rdb, expirationInMinutes)
+
 		}
-		services.SaveOnCache(r, response, rdb, expirationInMinutes)
 
 		for key, values := range response.Header {
 			for _, value := range values {
