@@ -17,6 +17,7 @@ func InitClient() {
 	var timeoutInt int
 	timeoutInt = TIMEOUT
 	requestTimeout := os.Getenv("REQUEST_TIMEOUT")
+
 	timeoutInt, err := strconv.Atoi(requestTimeout)
 	if err != nil {
 		fmt.Printf("Error starting http client: %v\n", err)

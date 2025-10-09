@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -13,11 +14,14 @@ import (
 
 func NewRequestHandler(rdb *redis.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("Received request: %s %s\n", r.Method, r.URL.Path)
 
 		ok, _ := services.GetFromCache(r, w, rdb)
 		if ok {
+			log.Printf("Cache hit for %s %s\n", r.Method, r.URL.Path)
 			return
 		}
+		log.Printf("Cache miss for %s %s\n", r.Method, r.URL.Path)
 
 		response, err := utils.MakeRequest(r.Method, r.URL.Path, r.Header, r.Body)
 		if err != nil {
