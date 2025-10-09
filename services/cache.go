@@ -18,7 +18,10 @@ type CacheValue struct {
 }
 
 func SaveOnCache(r *http.Request, resp *http.Response, rdb *redis.Client, expirationMinutes int) error {
-	cacheKey := fmt.Sprintf("%s-%s", r.Method, r.URL.Path)
+	authHeader := r.Header.Get("Authorization")
+
+	cacheKey := fmt.Sprintf("%s-%s-%s", r.Method, r.URL.Path, authHeader)
+
 	encodedCacheKey := base64.URLEncoding.EncodeToString([]byte(cacheKey))
 
 	bodyBytes, err := io.ReadAll(resp.Body)
@@ -38,6 +41,7 @@ func SaveOnCache(r *http.Request, resp *http.Response, rdb *redis.Client, expira
 		Body:    string(bodyBytes),
 		Headers: headers,
 	}
+
 	encodedContent, err := json.Marshal(cacheValue)
 	if err != nil {
 		return fmt.Errorf("error encoding cache value: %w", err)
@@ -45,6 +49,7 @@ func SaveOnCache(r *http.Request, resp *http.Response, rdb *redis.Client, expira
 
 	ctx := r.Context()
 	err = rdb.Set(ctx, encodedCacheKey, encodedContent, time.Duration(expirationMinutes)*time.Minute).Err()
+
 	if err != nil {
 		return fmt.Errorf("error saving to redis: %w", err)
 	}
@@ -53,7 +58,8 @@ func SaveOnCache(r *http.Request, resp *http.Response, rdb *redis.Client, expira
 }
 
 func GetFromCache(r *http.Request, w http.ResponseWriter, rdb *redis.Client) (bool, error) {
-	cacheKey := fmt.Sprintf("%s-%s", r.Method, r.URL.Path)
+	authHeader := r.Header.Get("Authorization")
+	cacheKey := fmt.Sprintf("%s-%s-%s", r.Method, r.URL.Path, authHeader)
 	encodedCacheKey := base64.URLEncoding.EncodeToString([]byte(cacheKey))
 
 	ctx := r.Context()
