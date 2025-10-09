@@ -42,7 +42,7 @@ func NewRequestHandler(rdb *redis.Client) http.HandlerFunc {
 		expirationInMinutes := 5
 		log.Printf("[CACHE HEADERS] Checking for X-Cache headers")
 
-		log.Panicf("[DEBUG] Response Headers: %v", response.Header)
+		log.Printf("[DEBUG] Response Headers: %v", response.Header)
 		xCache := response.Header.Get("X-Cache")
 		xCacheExpire := response.Header.Get("X-Cache-Expire")
 
